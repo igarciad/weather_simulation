@@ -34,7 +34,9 @@ To run, just compule all cpp files with C++11 flags (this is not a hard constrai
 
 We have tested using Visual Studio 2010 and 2013. Just create a project that include all files and run.
 
-This should run a default demo:
+## Result
+
+The default run demo:
 
 1. Load the initial weather state from a sounding. Note: We include code to load two types of sounding files.
 2. Load the ground variebles. Here we randomly assign to each bottommost gridcell a land use, and then, we populate the ground variables from the provided files (Supplemental Material B). Note: In our implementation we load this from images but here it is random to avoid to have additional dependencies.
