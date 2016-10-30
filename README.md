@@ -1,5 +1,5 @@
 # Fast Weather Simulation for Inverse Procedural Design of 3D Urban Models
-This is the source code for our paper **Fast Weather Simulation for Inverse Procedural Design of 3D Urban Models**, currently *accepted with minor revision* in ACM Transactions on Graphics TOG (10/2016).
+This is the source code for our paper **Fast Weather Simulation for Inverse Procedural Design of 3D Urban Models** by Ignacio Garcia-Dorado, Daniel Aliaga, Saiprasanth Bhalachandran, Paul Schmid, and Dev Niyogi, currently *accepted with minor revision* in ACM Transactions on Graphics TOG (10/2016).
 
 ## Abstract 
 We present the first realistic, physically-based, fully coupled, real-time
@@ -18,11 +18,11 @@ well-known weather simulation results and systems.
 
 Linux (tested in Ubuntu) and Windows (tested on Windows 10) are currently supported but it should work with any platform that compiles C++.
 
-## Install
+## Instalation
 
 The only requirement is GCC/G++. In Ubuntu, the default installed version (including live usb) should work. In Windows, we have used Visual Studio.
 
-## Run (Ubuntu)
+## Compilation (Ubuntu)
 
 To run, just compule all cpp files with C++11 flags (this is not a hard constraint), and run the code.
 
@@ -30,11 +30,11 @@ To run, just compule all cpp files with C++11 flags (this is not a hard constrai
     $ chmod +x weather
     $ ./weather
     
-## Run (Windows)
+## Compilation (Windows)
 
 We have tested using Visual Studio 2010 and 2013. Just create a project that include all files and run.
 
-## Result
+## Usage
 
 The default run demo:
 
@@ -48,7 +48,7 @@ The default run demo:
 Code of the paper: Fast  Weather  Simulation Coupled with Inverse Procedural Design of 3D Urban Models
 This project is licensed under the [MIT license](https://opensource.org/licenses/MIT)
 
-Copyright (c) 2011-2016 Ignacio Garcia Dorado, Daniel Aliaga.
+Copyright (c) 2011-2016 Ignacio Garcia-Dorado, Daniel Aliaga.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
