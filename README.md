@@ -2,21 +2,11 @@
 This is the source code for our paper **Fast Weather Simulation for Inverse Procedural Design of 3D Urban Models** by Ignacio Garcia-Dorado, Daniel Aliaga, Saiprasanth Bhalachandran, Paul Schmid, and Dev Niyogi, currently *accepted with minor revision* in ACM Transactions on Graphics TOG (10/2016).
 
 ## Abstract 
-We present the first realistic, physically-based, fully coupled, real-time
-weather design tool for use in urban procedural modeling. We merge de-
-signing of a 3D urban model with a controlled long-lasting spatiotemporal
-interactive simulation of weather. Starting from the fundamental dynami-
-cal equations similar to those used in state-of-the-art weather models, we
-present a novel simplified urban weather model for interactive graphics.
-Control of physically-based weather phenomena is accomplished via an in-
-verse modeling methodology. In our results, we present several scenarios of
-forward design, inverse design with high-level and detailed-level weather
-control and optimization, as well as comparisons of our method against
-well-known weather simulation results and systems.
-
+We present the first realistic, physically-based, fully coupled, real-time weather design tool for use in urban procedural modeling. We merge designing of a 3D urban model with a controlled long-lasting spatiotemporal interactive simulation of weather. Starting from the fundamental dynamical equations similar to those used in state-of-the-art weather models, we present a novel simplified urban weather model for interactive graphics. Control of physically-based weather phenomena is accomplished via an inverse modeling methodology. In our results, we present several scenarios of forward design, inverse design with high-level and detailed-level weather
+control and optimization, as well as comparisons of our method against well-known weather simulation results and systems.
 ## Platforms
 
-Linux (tested in Ubuntu) and Windows (tested on Windows 10) are currently supported but it should work with any platform that compiles C++.
+Linux (tested on Ubuntu) and Windows (tested on Windows 10) are currently supported but it should work with any platform that compiles C++.
 
 ## Instalation
 
@@ -24,7 +14,7 @@ The only requirement is GCC/G++. In Ubuntu, the default installed version (inclu
 
 ## Compilation (Ubuntu)
 
-To run, just compule all cpp files with C++11 flags (this is not a hard constraint), and run the code.
+To run, just compile all cpp files with C++11 flags (this is not a hard constraint), and run the code.
 
     $ g++ *.cpp *.h -std=c++11 -o weather
     $ chmod +x weather
@@ -32,16 +22,28 @@ To run, just compule all cpp files with C++11 flags (this is not a hard constrai
     
 ## Compilation (Windows)
 
-We have tested using Visual Studio 2010 and 2013. Just create a project that include all files and run.
+We have tested using Visual Studio 2010 and 2013. Just create a project that includes all files and run.
 
 ## Usage
 
 The default run demo:
 
 1. Load the initial weather state from a sounding. Note: We include code to load two types of sounding files.
-2. Load the ground variebles. Here we randomly assign to each bottommost gridcell a land use, and then, we populate the ground variables from the provided files (Supplemental Material B). Note: In our implementation we load this from images but here it is random to avoid to have additional dependencies.
+2. Load the ground variables. Here we randomly assign to each bottommost gridcell a land use, and then, we populate the ground variables from the provided files (Supplemental Material B). Note: In our implementation, we load this from images but here it is random to avoid to have additional dependencies.
 3. All the variables are initialized.
 4. The system runs 1000 iterations.
+
+## Files
+
+The main files are:
+
+- **WeatherMain:** Contains the *main* class that runs the simulation. First, the simulation variables are defined (e.g., *dT*, *grid size*), then the ground variables are initialized, and the initial state initialized from a sounding, finally, the simulation is executed.
+- **Weather3D:** Contains *simulateStep* that runs one or more steps of the simulation. In each step, the fundamental equations, microphysics, radiation, and move in time are executed.
+- **Grid3D:** Contains the 3D structure (as a 1D vector) that holds the simulation variables and the access patern.
+- **Ground3D:** Contains the structure (as a 1D vector) that holds the ground simulation variables and the access patern. Since it represents the bottommost gridcells, it is just a 2D structure.
+- **RadStruct:** Contains a structure that is used by the radiation model (e.g., day of the year, time of the day).
+- **sounding_0:** Contains an example of weather sounding from [University of Wyoming](http://weather.uwyo.edu/upperair/sounding.html). This file is used to initialize the Grid3D.
+- **landuse_constants:** Contains the land use variables used in the simulation (Supplemental Material B).
 
 ## License
 
@@ -67,4 +69,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
-
