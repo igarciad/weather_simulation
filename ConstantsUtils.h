@@ -140,11 +140,11 @@ public:
 					cvsOutput.clear();
 					return false;
 				}
-				i++;
 				try {
 					entry.insert(std::pair<std::string, float>(header[i], std::stof(cell)));
 				}
 				catch (...) {};  // skip not float
+				i++;
 			}
 			cvsOutput.push_back(entry);
 		}
