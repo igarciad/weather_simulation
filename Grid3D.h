@@ -3,6 +3,7 @@
 
 #include "ConstantsUtils.h"
 #include <algorithm>
+#include <cmath>
 
 /* Grid3D: Structure that contains all variables and applies the toroidal behavior */
 struct Grid3D {
