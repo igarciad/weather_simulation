@@ -47,25 +47,27 @@ void saveToHDDCurrentState() {
 	const int vars[] = { U, V, W, Pi, THETA, QV, QR };// Variables to save: U V W PI T QV QR
 	std::vector<int> heightToSave = { 2, gridZ / 2, gridZ - 2 }; // Sample Pos: close to bottom / middle / close to top
 
+	std::ofstream oU;
+	oU.open("OUT.csv", std::fstream::out | std::fstream::app);
 	const int size = (sizeof(vars) / sizeof(int));
-	for (int hS = 0; hS < heightToSave.size(); hS++) {
-		int h = heightToSave[hS];
-		std::ofstream oU;
-		oU.open("OUT.csv", std::fstream::out | std::fstream::app);
-
-		oU << h;//height
-		for (int i = 0; i < size; i++) {
-			if (grid3D[currInd](vars[i], 0, 0, h) != grid3D[currInd](vars[i], 0, 0, h) || gridRslow(vars[i], 0, 0, h) != gridRslow(vars[i], 0, 0, h)) {
-				// NaN ERROR
-				printf("ERROR: Variable Nan--> Exit\n");
-				oU << "\n"; oU.close();
-				exit(0);
+	for (int k = 1; k < gridZ - 1; k++) {
+		for (int j = 0; j < gridY; j++) {
+			for (int i = 0; i < gridX; i++) {
+				oU << "[" << i << ", " << j << ", " << k << "] ";
+				for (int vn = 0; vn < size; vn++) {
+					if (grid3D[currInd](vars[vn], i, j, k) != grid3D[currInd](vars[vn], i, j, k) || gridRslow(vars[vn], i, j, k) != gridRslow(vars[vn], i, j, k)) {
+						// NaN ERROR
+						printf("ERROR: Variable Nan--> Exit\n");
+						oU << "\n"; oU.close();
+						exit(0);
+					}
+					oU << "," << grid3D[currInd](vars[vn], i, j, k) << "," << gridRslow(vars[vn], i, j, k);
+				}
+				oU << "\n";
 			}
-			oU << "," << grid3D[currInd](vars[i], 0, 0, h) << "," << gridRslow(vars[i], 0, 0, h);
 		}
-		oU << "\n";
-		oU.close();
 	}
+	oU.close();
 }
 
 
