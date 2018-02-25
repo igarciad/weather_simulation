@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <stdio.h>
 #include <stdlib.h>
+#include <thread>
 
 const bool saveToFile = true;
 
@@ -33,6 +34,8 @@ Grid3D gridRslow;
 Ground3D ground;
 RadStruct radStruct;
 
+unsigned numThreads;
+
 /* Copy to the structs the current state of the simulation */
 void copyCurrentState(Grid3D& _currGrid, Ground3D& _currGround) {
 	_currGrid = grid3D[currInd];
@@ -44,25 +47,27 @@ void saveToHDDCurrentState() {
 	const int vars[] = { U, V, W, Pi, THETA, QV, QR };// Variables to save: U V W PI T QV QR
 	std::vector<int> heightToSave = { 2, gridZ / 2, gridZ - 2 }; // Sample Pos: close to bottom / middle / close to top
 
+	std::ofstream oU;
+	oU.open("OUT.csv", std::fstream::out | std::fstream::app);
 	const int size = (sizeof(vars) / sizeof(int));
-	for (int hS = 0; hS < heightToSave.size(); hS++) {
-		int h = heightToSave[hS];
-		std::ofstream oU;
-		oU.open("OUT.csv", std::fstream::out | std::fstream::app);
-
-		oU << h;//height
-		for (int i = 0; i < size; i++) {
-			if (grid3D[currInd](vars[i], 0, 0, h) != grid3D[currInd](vars[i], 0, 0, h) || gridRslow(vars[i], 0, 0, h) != gridRslow(vars[i], 0, 0, h)) {
-				// NaN ERROR
-				printf("ERROR: Variable Nan--> Exit\n");
-				oU << "\n"; oU.close();
-				exit(0);
+	for (int k = 1; k < gridZ - 1; k++) {
+		for (int j = 0; j < gridY; j++) {
+			for (int i = 0; i < gridX; i++) {
+				oU << "[" << i << ", " << j << ", " << k << "] ";
+				for (int vn = 0; vn < size; vn++) {
+					if (grid3D[currInd](vars[vn], i, j, k) != grid3D[currInd](vars[vn], i, j, k) || gridRslow(vars[vn], i, j, k) != gridRslow(vars[vn], i, j, k)) {
+						// NaN ERROR
+						printf("ERROR: Variable Nan--> Exit\n");
+						oU << "\n"; oU.close();
+						exit(0);
+					}
+					oU << "," << grid3D[currInd](vars[vn], i, j, k) << "," << gridRslow(vars[vn], i, j, k);
+				}
+				oU << "\n";
 			}
-			oU << "," << grid3D[currInd](vars[i], 0, 0, h) << "," << gridRslow(vars[i], 0, 0, h);
 		}
-		oU << "\n";
-		oU.close();
 	}
+	oU.close();
 }
 
 
@@ -71,12 +76,14 @@ void saveToHDDCurrentState() {
 
 /* STEP 1 Fundamental Equations */
 void simulateSTEP1(
+	int nT,
 	const float dT, const int gridX, const int gridY, const int gridZ, const float simulationTime,
 	const float gridSizeI, const float gridSizeJ, float *gridSizeK,
 	Grid3D prevGC, Grid3D currGC, Grid3D nextGC,
 	Grid3D gridRslow, Grid3D gridInit) {
 
-	for (int k = 1; k < gridZ - 1; k++) {
+	int span = (gridZ - 1 + numThreads - 1) / numThreads;
+	for (int k = 1 + nT * span; k < 1 + (nT + 1) * span && k < gridZ - 1; k++) {
 		for (int j = 0; j < gridY; j++) {
 			for (int i = 0; i < gridX; i++) {
 
@@ -220,12 +227,14 @@ void simulateSTEP1(
 
 /* STEP2: Kelsner Microphicis */
 void simulateSTEP2(
+	int nT,
 	const float dT, const int gridX, const int gridY, const int gridZ, const float simulationTime,
 	const float gridSizeI, const float gridSizeJ, float *gridSizeK,
 	Grid3D prevGC, Grid3D currGC, Grid3D nextGC,
 	Grid3D gridRslow, Grid3D gridInit, RadStruct st) {
 
-	for (int k = 1; k < gridZ - 1; k++) {
+	int span = (gridZ - 1 + numThreads - 1) / numThreads;
+	for (int k = 1 + nT * span; k < 1 + (nT + 1) * span && k < gridZ - 1; k++) {
 		for (int j = 0; j < gridY; j++) {
 			for (int i = 0; i < gridX; i++) {
 
@@ -284,12 +293,14 @@ void simulateSTEP2(
 
 /* STEP3: Radiation model */
 void simulateSTEP3(
+	int nT,
 	const float dT, const int gridX, const int gridY, const int gridZ, const float simulationTime,
 	const float gridSizeI, const float gridSizeJ, float *gridSizeK,
 	Grid3D prevGC, Grid3D currGC, Grid3D nextGC,
 	Grid3D gridRslow, Grid3D gridInit, Ground3D ground, RadStruct st) {
 
-	for (int j = 0; j < gridY; j++) {
+	int span = (gridY + numThreads - 1) / numThreads;
+	for (int j = nT * span; j < (nT + 1) * span && j < gridY; j++) {
 		for (int i = 0; i < gridX; i++) {
 
 			const float T_M = 29.0f + 273.15f;// Invariable slab temperature //INIT 10.0f 32.0f
@@ -419,12 +430,14 @@ void simulateSTEP3(
 
 /* STEP4: Move forward in time */
 void simulateSTEP4(
+	int nT,
 	const float dT, const int gridX, const int gridY, const int gridZ, const float simulationTime,
 	const float gridSizeI, const float gridSizeJ, float *gridSizeK,
 	Grid3D prevGC, Grid3D currGC, Grid3D nextGC,
 	Grid3D gridRslow, Grid3D gridInit) {
 
-	for (int k = 1; k < gridZ - 1; k++) {
+	int span = (gridZ - 1 + numThreads - 1) / numThreads;
+	for (int k = 1 + nT * span; k < 1 + (nT + 1) * span && k < gridZ - 1; k++) {
 		for (int j = 0; j < gridY; j++) {
 			for (int i = 0; i < gridX; i++) {
 
@@ -499,6 +512,9 @@ void initSimulation(const float _dT, const int _gridX, const int _gridY, const i
 	printf("<<initSimulation\n");
 
 	firstTime = false;
+	numThreads = std::thread::hardware_concurrency();
+	//if (!numThreads)
+		numThreads = 1;
 }//
 
 
@@ -521,38 +537,55 @@ void simulateStep(const int numSteps, float& simulationTime) {
 		int prevInd = (currInd - 1);
 		if (prevInd < 0)prevInd = 2;//3 number of grids
 		// printf("prev %d curr %d next %d\n", prevInd, currInd, nextInd);
+		std::thread thread[numThreads];
 
 		for (int i = 0; i < NUM_ELEM; i++) {
 			memset(&gridRslow.var[i][0], 0, size_t(sizeof(float)*gridX*gridY*gridZ));
 		}
 
 		// Fundamental equations
-		simulateSTEP1(
-			dT, gridX, gridY, gridZ, simulationTime,
-			gridSizeI, gridSizeJ, gridSizeK.data(),
-			grid3D[prevInd], grid3D[currInd], grid3D[nextInd],
-			gridRslow, gridInit);
+		for (int nT = 0; nT < numThreads; nT++)
+			thread[nT] = std::thread(
+			simulateSTEP1, nT,
+				dT, gridX, gridY, gridZ, simulationTime,
+				gridSizeI, gridSizeJ, gridSizeK.data(),
+				grid3D[prevInd], grid3D[currInd], grid3D[nextInd],
+				gridRslow, gridInit);
+		for (int nT = 0; nT < numThreads; nT++)
+			thread[nT].join();
 
 		// Microphisics
-		simulateSTEP2(
-			dT, gridX, gridY, gridZ, simulationTime,
-			gridSizeI, gridSizeJ, gridSizeK.data(),
-			grid3D[prevInd], grid3D[currInd], grid3D[nextInd],
-			gridRslow, gridInit, radStruct);
+		for (int nT = 0; nT < numThreads; nT++)
+			thread[nT] = std::thread(
+			simulateSTEP2, nT,
+				dT, gridX, gridY, gridZ, simulationTime,
+				gridSizeI, gridSizeJ, gridSizeK.data(),
+				grid3D[prevInd], grid3D[currInd], grid3D[nextInd],
+				gridRslow, gridInit, radStruct);
+		for (int nT = 0; nT < numThreads; nT++)
+			thread[nT].join();
 
 		// Radiation
-		simulateSTEP3(
-			dT, gridX, gridY, gridZ, simulationTime,
-			gridSizeI, gridSizeJ, gridSizeK.data(),
-			grid3D[prevInd], grid3D[currInd], grid3D[nextInd],
-			gridRslow, gridInit, ground, radStruct);
+		for (int nT = 0; nT < numThreads; nT++)
+			thread[nT] = std::thread(
+			simulateSTEP3, nT,
+				dT, gridX, gridY, gridZ, simulationTime,
+				gridSizeI, gridSizeJ, gridSizeK.data(),
+				grid3D[prevInd], grid3D[currInd], grid3D[nextInd],
+				gridRslow, gridInit, ground, radStruct);
+		for (int nT = 0; nT < numThreads; nT++)
+			thread[nT].join();
 
 		// Move in time
-		simulateSTEP4(
-			dT, gridX, gridY, gridZ, simulationTime,
-			gridSizeI, gridSizeJ, gridSizeK.data(),
-			grid3D[prevInd], grid3D[currInd], grid3D[nextInd],
-			gridRslow, gridInit);
+		for (int nT = 0; nT < numThreads; nT++)
+			thread[nT] = std::thread(
+			simulateSTEP4, nT,
+				dT, gridX, gridY, gridZ, simulationTime,
+				gridSizeI, gridSizeJ, gridSizeK.data(),
+				grid3D[prevInd], grid3D[currInd], grid3D[nextInd],
+				gridRslow, gridInit);
+		for (int nT = 0; nT < numThreads; nT++)
+			thread[nT].join();
 
 		currInd = (currInd + 1) % 3;//3 number of grids
 
